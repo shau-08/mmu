@@ -1,22 +1,27 @@
-# Stub Makefile -- deliberately does NOT invoke Mill/Chisel. Only exists
-# to prove the CI/CD trigger/dispatch chain works mechanically, isolated
-# from real toolchain concerns.
+project = mmu
 
+TARGET = MMU
+
+# Toolchains and tools
+MILL = ./../playground/mill
+
+-include ./../playground/Makefile.include
 -include cd.config
+
 RTL_TARGET ?= rtl
-TARGET ?= stub
 
-.PHONY: test rtl lazyrtl rtl-dispatch
+# Targets
+rtl: check-firtool ## Generates Verilog code from Chisel sources (output to ./generated_sv_dir)
+	$(MILL) $(project).runMain redefine.rrm.mmu.genRTLMain $(TARGET)
 
-test:
-	@echo "stub test target -- pretending to run ChiselTest successfully"
+.PHONY: rtl-dispatch
+rtl-dispatch: ## Used by CD: runs whichever target cd.config's RTL_TARGET names (default: rtl)
+	$(MAKE) $(RTL_TARGET) TARGET=$(TARGET)
 
-rtl:
-	@mkdir -p generated_sv_dir
-	@echo "// stub generated RTL for TARGET=$(TARGET)" > generated_sv_dir/stub.sv
-	@echo "stub rtl target -- wrote generated_sv_dir/stub.sv"
 
-lazyrtl: rtl
+check: test
+.PHONY: test
+test: check-verilator ## Run Chisel tests
+	$(MILL) $(project).test.testOnly redefine.rrm.mmu.smoke.MMUTest
+	@echo "If using WriteVcdAnnotation in your tests, the VCD files are generated in ./test_run_dir/testname directories."
 
-rtl-dispatch:
-	@$(MAKE) $(RTL_TARGET) TARGET=$(TARGET)
