@@ -3,7 +3,7 @@
 if [ -f ./mill ]; then
   MILL_BIN=./mill
 else
-  MILL_BIN=playground/mill
+  MILL_BIN=../playground/mill
 fi
 
 # Same auto-detection convention as pre-push and CI.
@@ -17,7 +17,7 @@ if [ -z "$PROJECT" ]; then
   exit 0
 fi
 
-make -f playground/Makefile.include lint project="$PROJECT" MILL="$MILL_BIN" || true
+make -f ../playground/Makefile.include lint project="$PROJECT" MILL="$MILL_BIN" || true
 
 if ! git diff --exit-code --quiet; then
   echo "Lint reformatted files after your last commit. Review, commit the changes, and push again -- the push will be blocked otherwise."
